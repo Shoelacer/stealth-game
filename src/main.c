@@ -6,6 +6,8 @@
 #include "game.h"
 #include "player.h"
 #include "tilemap.h"
+#include "guard.h"
+#include "bullet.h"
 
 int main(int argc, char *argv[]){
     (void)argc; (void)argv; // to avoid compiler warnings about unused vars
