@@ -6,6 +6,7 @@
 
 #define TILE_SIZE 32.0f
 #define PLAYER_SPEED 400.0f
+#define FOV_ANGLE 3.14159*2 * (45)/360
 
 typedef struct
 {
@@ -21,48 +22,44 @@ static inline void playerInit(Player *p, float x, float y)
     p->vy = 0;
 }
 
-
-//FIGURE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//FIGURE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//FIGURE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//FIGURE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//FIGURE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//FIGURE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//FIGURE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//FIGURE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//FIGURE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// RAYTRACING ALGORITHM
+// credits: https://aaaa.sh/creatures/dda-algorithm-interactive/ 
+// learned the algorithm from the site above
 static inline void drawLine(float x1, float y1, float x2, float y2){
     if(x2==x1)return;
 
-    TileCoord white = {(int)x1,(int)y1};
 
     float dx = x2-x1;
     float dy = y2-y1;
     float slope = (dy)/(dx);
     float angle = atan2f(-dy,dx);
 
-    float xDist = cosf(angle);
-    float yDist = sinf(angle);
+    for(float theta = angle - FOV_ANGLE/2; theta<=angle+FOV_ANGLE/2; theta+=.1){
+
+        TileCoord white = {(int)x1,(int)y1};
+        float xDist = cosf(theta);
+        float yDist = sinf(theta);
 
 
-    float distBetweenRows = sqrt(1+ (xDist/yDist)*(xDist/yDist));
-    float distBetweenColumns = sqrt(1+ (yDist/xDist)*(yDist/xDist));
+        float distBetweenRows = sqrt(1+ (xDist/yDist)*(xDist/yDist));
+        float distBetweenColumns = sqrt(1+ (yDist/xDist)*(yDist/xDist));
 
-    float distToY = distBetweenRows;
-    float distToX = distBetweenColumns;
-    
+        float distToY = distBetweenRows;
+        float distToX = distBetweenColumns;
+        
 
-    for(int i=0; i<10; i++){
-        if(white.x<0||white.x>=MAP_W||white.y<0||white.y>=MAP_H)break;
-        if(mapGrid[white.y][white.x]==WALL) break;
-        mapGrid[white.y][white.x]=2;
-        if(distToY>distToX){
-            
-                white.x+=dx/SDL_fabs(dx);
-                distToX+=distBetweenColumns;
-        }else{
-                white.y+=dy/SDL_fabs(dy);
-                distToY+=distBetweenRows;
+        for(int i=0; i<10; i++){
+            if(white.x<0||white.x>=MAP_W||white.y<0||white.y>=MAP_H)break;
+            if(mapGrid[white.y][white.x]==WALL) break;
+            mapGrid[white.y][white.x]=2;
+            if(distToY>distToX){
+                
+                    white.x+=xDist/SDL_fabs(xDist);
+                    distToX+=distBetweenColumns;
+            }else{
+                    white.y+=-yDist/SDL_fabs(yDist);
+                    distToY+=distBetweenRows;
+            }
         }
     }
 }
