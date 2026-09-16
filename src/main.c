@@ -2,7 +2,10 @@
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include <stdio.h>
 #include "game.h"
+#include "player.h"
+#include "tilemap.h"
 
 int main(int argc, char *argv[]){
     (void)argc; (void)argv; // to avoid compiler warnings about unused vars
@@ -23,4 +26,44 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
+    //Game stuff
+    Player player;
+    playerInit(&player, 400.0f, 300.0f);
+
+    bool running = true;
+
+    Uint64 lastTime=SDL_GetTicksNS();
+
+    while(running){
+
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_EVENT_QUIT) running = false; //Quits app
+        }
+
+        // Time delay
+        Uint64 now = SDL_GetTicksNS();
+        float dt = (float)(now-lastTime)/1e9f;
+        lastTime=now;
+
+        playerUpdate(&player, dt);
+
+        SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);
+        SDL_RenderClear(renderer);
+
+        renderTilemap(renderer);
+
+
+        SDL_FRect playerRect = {player.x, player.y, 32.0f, 32.0f};
+        SDL_SetRenderDrawColor(renderer, 255,255,255,255);
+        SDL_RenderFillRect(renderer, &playerRect);
+
+        SDL_RenderPresent(renderer);
+        SDL_Delay(16);
+
+    }
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    return 0;
 }

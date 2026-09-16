@@ -4,7 +4,7 @@ CC = gcc
 
 
 #Enables warning signs, both normal and extra
-CFLAGS = -Wall -Wextra 		
+CFLAGS = -Wall -Wextra -g
 
 # pkg-config shows where the SDL3 things are
 LDFLAGS = $(shell pkg-config --libs sdl3)
