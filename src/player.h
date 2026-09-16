@@ -41,12 +41,32 @@ static inline void playerUpdate(Player *p, float dt)
     //p->x += p->vx * dt;
     //p->y += p->vy * dt;
 
-    //bounds check, will replace with tile collision
-    float newX = p->x + p->vx * dt;
-    if (!rectHitsWall(newX, p->y, TILE, TILE))
-        p->x = newX;
+// snap coords?
+float newX = p->x + p->vx * dt;
+if (rectHitsWall(newX, p->y, TILE, TILE)&&p->vx!=0) {
+    if (p->vx < 0) {
+        // Moving left
+        int wallCol = (int)(newX / TILE);
+        p->x = (wallCol + 1) * TILE;
+    } else {
+        //moving right
+        int wallCol = (int)((newX + TILE) / TILE);
+        p->x = wallCol * TILE - TILE;
+    }
+} else {
+    p->x = newX;
+}
 
-    float newY = p->y + p->vy * dt;
-    if (!rectHitsWall(p->x, newY, TILE, TILE))
-        p->y = newY;
+float newY = p->y + p->vy * dt;
+if (rectHitsWall(p->x, newY, TILE, TILE)&&p->vy!=0) {
+    if (p->vy < 0) {
+        int wallRow = (int)(newY / TILE);
+        p->y = (wallRow + 1) * TILE;
+    } else {
+        int wallRow = (int)((newY + TILE) / TILE);
+        p->y = wallRow * TILE - TILE;
+    }
+} else {
+    p->y = newY;
+}   
 }

@@ -38,13 +38,16 @@ static inline bool isWall(int col, int row){
 
 static inline bool rectHitsWall(float x, float y, float w, float h){
     int left = (int)(x/TILE);
-    int right = (int)((x+w)/TILE);
+    int right = (int)((x+w-.0001)/TILE);
     int top = (int)(y/TILE);
-    int bottom = (int)((y+h)/TILE);
-    printf("Left: %d, Right: %d, Top: %d, Bottom: %d\n",left,right,top,bottom);
+    int bottom = (int)((y+h-.0001)/TILE);
+
     for (int r = top; r <= bottom; r++)
-        for (int c = left; c <= right; c++)
-            if (isWall(c, r)) return true;
+        for (int c = left; c <= right; c++){
+            if (isWall(c, r)){
+                return true;
+            }
+        }
     return false;
 }
 
