@@ -28,7 +28,7 @@ int main(int argc, char *argv[]){
 
     //Game stuff
     Player player;
-    playerInit(&player, 400.0f, 300.0f);
+    playerInit(&player, 320.0f, 320.0f);
 
     bool running = true;
 

@@ -1,6 +1,7 @@
 #pragma once
 #include <SDL3/SDL.h>
 #include <stdio.h>
+#include <math.h>
 #include "tilemap.h"
 
 #define TILE_SIZE 32.0f
@@ -17,12 +18,64 @@ static inline void playerInit(Player *p, float x, float y)
     p->x = x;
     p->y = y;
     p->vx = 0;
-    p->vy;
+    p->vy = 0;
 }
+
+
+//FIGURE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//FIGURE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//FIGURE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//FIGURE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//FIGURE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//FIGURE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//FIGURE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//FIGURE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//FIGURE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+static inline void drawLine(float x1, float y1, float x2, float y2){
+    if(x2==x1)return;
+
+    TileCoord white = {(int)x1,(int)y1};
+
+    float dx = x2-x1;
+    float dy = y2-y1;
+    float slope = (dy)/(dx);
+    float angle = atan2f(-dy,dx);
+
+    float xDist = cosf(angle);
+    float yDist = sinf(angle);
+
+
+    float distBetweenRows = sqrt(1+ (xDist/yDist)*(xDist/yDist));
+    float distBetweenColumns = sqrt(1+ (yDist/xDist)*(yDist/xDist));
+
+    float distToY = distBetweenRows;
+    float distToX = distBetweenColumns;
+    
+
+    for(int i=0; i<10; i++){
+        if(white.x<0||white.x>=MAP_W||white.y<0||white.y>=MAP_H)break;
+        if(mapGrid[white.y][white.x]==WALL) break;
+        mapGrid[white.y][white.x]=2;
+        if(distToY>distToX){
+            
+                white.x+=dx/SDL_fabs(dx);
+                distToX+=distBetweenColumns;
+        }else{
+                white.y+=dy/SDL_fabs(dy);
+                distToY+=distBetweenRows;
+        }
+    }
+}
+
 
 static inline void playerUpdate(Player *p, float dt)
 {
     const bool *keys = SDL_GetKeyboardState(NULL);
+
+    float mouseX = 0, mouseY = 0;
+
+    SDL_GetMouseState(&mouseX,&mouseY);
+
     p->vx=0;
     p->vy=0;
 
@@ -37,36 +90,40 @@ static inline void playerUpdate(Player *p, float dt)
         p->vy *= 1.0f/SDL_sqrtf(2);
     }
 
-    // move based on dt
-    //p->x += p->vx * dt;
-    //p->y += p->vy * dt;
-
-// snap coords?
-float newX = p->x + p->vx * dt;
-if (rectHitsWall(newX, p->y, TILE, TILE)&&p->vx!=0) {
-    if (p->vx < 0) {
-        // Moving left
-        int wallCol = (int)(newX / TILE);
-        p->x = (wallCol + 1) * TILE;
+    // snap coords?
+    float newX = p->x + p->vx * dt;
+    if (rectHitsWall(newX, p->y, TILE, TILE)&&p->vx!=0) {
+        if (p->vx < 0) {
+            // Moving left
+            int wallCol = (int)(newX / TILE);
+            p->x = (wallCol + 1) * TILE;
+        } else {
+            //moving right
+            int wallCol = (int)((newX + TILE) / TILE);
+            p->x = wallCol * TILE - TILE;
+        }
     } else {
-        //moving right
-        int wallCol = (int)((newX + TILE) / TILE);
-        p->x = wallCol * TILE - TILE;
+        p->x = newX;
     }
-} else {
-    p->x = newX;
+
+    float newY = p->y + p->vy * dt;
+    if (rectHitsWall(p->x, newY, TILE, TILE)&&p->vy!=0) {
+        if (p->vy < 0) {
+            int wallRow = (int)(newY / TILE);
+            p->y = (wallRow + 1) * TILE;
+        } else {
+            int wallRow = (int)((newY + TILE) / TILE);
+            p->y = wallRow * TILE - TILE;
+        }
+    } else {
+        p->y = newY;
+    }   
+
+    memcpy(mapGrid, originalMap, sizeof(mapGrid));
+
+    //mapGrid[(int)((mouseY)/TILE)][(int)((mouseX)/TILE)] = 2;
+
+    drawLine(p->x/TILE+0.5f, p->y/TILE+0.5f, mouseX/TILE, mouseY/TILE);
+
 }
 
-float newY = p->y + p->vy * dt;
-if (rectHitsWall(p->x, newY, TILE, TILE)&&p->vy!=0) {
-    if (p->vy < 0) {
-        int wallRow = (int)(newY / TILE);
-        p->y = (wallRow + 1) * TILE;
-    } else {
-        int wallRow = (int)((newY + TILE) / TILE);
-        p->y = wallRow * TILE - TILE;
-    }
-} else {
-    p->y = newY;
-}   
-}
