@@ -32,6 +32,9 @@ int main(int argc, char *argv[]){
     Player player;
     playerInit(&player, 320.0f, 320.0f);
 
+    Bullet bullets[10000];
+    size_t current_bullet = 0;
+
     bool running = true;
 
     Uint64 lastTime=SDL_GetTicksNS();
@@ -41,6 +44,12 @@ int main(int argc, char *argv[]){
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT) running = false; //Quits app
+            else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+                if(event.button.button==SDL_BUTTON_LEFT){
+                    bulletInit(&(bullets[current_bullet]),player.x+TILE_SIZE/2,player.y+TILE_SIZE/2,event.button.x-(player.x+TILE_SIZE/2),event.button.y-(player.y+TILE_SIZE/2));
+                    current_bullet++;
+                }
+            }
         }
 
         // Time delay
@@ -49,6 +58,8 @@ int main(int argc, char *argv[]){
         lastTime=now;
 
         playerUpdate(&player, dt);
+
+        
 
         SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);
         SDL_RenderClear(renderer);
@@ -59,6 +70,15 @@ int main(int argc, char *argv[]){
         SDL_FRect playerRect = {player.x, player.y, 32.0f, 32.0f};
         SDL_SetRenderDrawColor(renderer, 255,255,255,255);
         SDL_RenderFillRect(renderer, &playerRect);
+
+        for(int i=0; i<current_bullet; i++){
+            Bullet *bullet = &bullets[i];
+            bulletUpdate(bullet, dt);
+            SDL_FRect bulletRect = {bullet->x, bullet->y, 4.0f, 4.0f};
+            SDL_SetRenderDrawColor(renderer, 0,255,255,255);
+            SDL_RenderFillRect(renderer, &bulletRect);
+        }
+
 
         SDL_RenderPresent(renderer);
         SDL_Delay(16);
