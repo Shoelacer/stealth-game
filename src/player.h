@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "tilemap.h"
+#include "bullet.h"
 
 #define TILE_SIZE 32.0f
 #define PLAYER_SPEED 400.0f
@@ -12,6 +13,9 @@ typedef struct
 {
     float x, y;   // Top left of hitbox
     float vx, vy; // pixels/sec
+    float health;
+    SDL_Color color;
+
 } Player;
 
 static inline void playerInit(Player *p, float x, float y)
@@ -20,6 +24,7 @@ static inline void playerInit(Player *p, float x, float y)
     p->y = y;
     p->vx = 0;
     p->vy = 0;
+    p->color = (SDL_Color){255,255,255,255};
 }
 
 // RAYTRACING ALGORITHM
@@ -64,8 +69,28 @@ static inline void drawLine(float x1, float y1, float x2, float y2){
     }
 }
 
+bool hittingBullet(Player *p, Bullet bullets[]){
+    for(int i=0; i<10000; i++){
+        
+        Bullet *b = &bullets[i];
+        SDL_Rect rb = {b->x, b->y, b->w, b->h};
+        SDL_Rect rp = {p->x, p->y, TILE, TILE};
+        if(SDL_HasRectIntersection(&rb, &rp)){
+            p->color.b=100;
+            p->color.g=100;
+            printf("bozo");
+            fflush(stdout);
+            return true;
+        }
+    }
+            p->color.b=255;
+            p->color.g=255;
 
-static inline void playerUpdate(Player *p, float dt)
+    return false;
+}
+
+
+static inline void playerUpdate(Player *p, Bullet bullets[], float dt)
 {
     const bool *keys = SDL_GetKeyboardState(NULL);
 
@@ -117,6 +142,8 @@ static inline void playerUpdate(Player *p, float dt)
     }   
 
     memcpy(mapGrid, originalMap, sizeof(mapGrid));
+
+    hittingBullet(p,bullets);
 
     //mapGrid[(int)((mouseY)/TILE)][(int)((mouseX)/TILE)] = 2;
 

@@ -9,6 +9,8 @@
 #include "guard.h"
 #include "bullet.h"
 
+#define FIRE_RATE 1000000000/2
+
 int main(int argc, char *argv[]){
     (void)argc; (void)argv; // to avoid compiler warnings about unused vars
 
@@ -38,26 +40,50 @@ int main(int argc, char *argv[]){
     bool running = true;
 
     Uint64 lastTime=SDL_GetTicksNS();
+    Uint64 lastBulletTime = SDL_GetTicksNS();
 
     while(running){
-
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_EVENT_QUIT) running = false; //Quits app
-            else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
-                if(event.button.button==SDL_BUTTON_LEFT){
-                    bulletInit(&(bullets[current_bullet]),player.x+TILE_SIZE/2,player.y+TILE_SIZE/2,event.button.x-(player.x+TILE_SIZE/2),event.button.y-(player.y+TILE_SIZE/2));
-                    current_bullet++;
-                }
-            }
-        }
 
         // Time delay
         Uint64 now = SDL_GetTicksNS();
         float dt = (float)(now-lastTime)/1e9f;
         lastTime=now;
 
-        playerUpdate(&player, dt);
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_EVENT_QUIT) running = false; 
+        }
+
+        float mouse_x=0; float mouse_y=0;
+
+        SDL_MouseButtonFlags Buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+
+        if (Buttons & SDL_BUTTON_MASK(SDL_BUTTON_LEFT)&& now-lastBulletTime>=FIRE_RATE) {
+
+            float dx=mouse_x-(player.x+TILE_SIZE/2); float dy=mouse_y-(player.y+TILE_SIZE/2);
+            if(SDL_fabs(dx)>SDL_fabs(dy)){
+                dy/=SDL_fabs(dx/(TILE/2));
+                dx/=SDL_fabs(dx/(TILE/2));
+            }else{
+                dx/=SDL_fabs(dy/(TILE/2));
+                dy/=SDL_fabs(dy/(TILE/2));
+            }
+
+            bulletInit(
+                &(bullets[current_bullet]),
+                player.x+TILE_SIZE/2-BULLET_SIZE/2+dx*(1.00001+BULLET_SIZE/TILE),
+                player.y+TILE_SIZE/2-BULLET_SIZE/2+dy*(1.00001+BULLET_SIZE/TILE),
+                dx,
+                dy, 
+                (SDL_Color){255,0,0,255}, 
+                false
+            );
+
+            current_bullet++;
+            lastBulletTime = now;
+        }
+
+        playerUpdate(&player, bullets, dt);
 
         
 
@@ -68,14 +94,17 @@ int main(int argc, char *argv[]){
 
 
         SDL_FRect playerRect = {player.x, player.y, 32.0f, 32.0f};
-        SDL_SetRenderDrawColor(renderer, 255,255,255,255);
+        SDL_SetRenderDrawColor(renderer, player.color.r, player.color.g, player.color.b, player.color.a);
         SDL_RenderFillRect(renderer, &playerRect);
 
         for(int i=0; i<current_bullet; i++){
-            Bullet *bullet = &bullets[i];
-            bulletUpdate(bullet, dt);
-            SDL_FRect bulletRect = {bullet->x, bullet->y, 4.0f, 4.0f};
-            SDL_SetRenderDrawColor(renderer, 0,255,255,255);
+            Bullet *b = &bullets[i];
+            if(!b->active){
+                continue;
+            }
+            bulletUpdate(b, dt);
+            SDL_FRect bulletRect = {b->x, b->y, b->w, b->h};
+            SDL_SetRenderDrawColor(renderer, b->color.r, b->color.g, b->color.b, b->color.a);
             SDL_RenderFillRect(renderer, &bulletRect);
         }
 
