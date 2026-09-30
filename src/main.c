@@ -35,7 +35,11 @@ int main(int argc, char *argv[]){
     playerInit(&player, 320.0f, 320.0f);
 
     Bullet bullets[10000];
+    Guard guards[100];
     size_t current_bullet = 0;
+
+    //INITIALIZE TEST GUARD
+    guardInit(&guards[0],400,350,10,10);
 
     bool running = true;
 
@@ -101,6 +105,7 @@ int main(int argc, char *argv[]){
         SDL_SetRenderDrawColor(renderer, player.color.r, player.color.g, player.color.b, player.color.a);
         SDL_RenderFillRect(renderer, &playerRect);
 
+
         for(int i=0; i<current_bullet; i++){
             Bullet *b = &bullets[i];
             if(!b->active){
@@ -112,6 +117,18 @@ int main(int argc, char *argv[]){
             SDL_RenderFillRect(renderer, &bulletRect);
         }
 
+        for(int i=0; i<100; i++){
+            Guard *g = &guards[i];
+            if(!g->active){
+                continue;
+            }
+            guardUpdate(g, dt);
+            if(hittingLight(&(g->box))){
+                SDL_FRect guardRect = {g->box.x, g->box.y, g->box.w, g->box.h};
+                SDL_SetRenderDrawColor(renderer, 255, 255, 0, 0);
+                SDL_RenderFillRect(renderer, &guardRect);
+            }
+        }
 
         SDL_RenderPresent(renderer);
         SDL_Delay(16);

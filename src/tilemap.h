@@ -48,6 +48,10 @@ static inline bool isWall(int col, int row){
     return mapGrid[row][col]==1;
 }
 
+static inline bool isLit(int col, int row){
+    if(col<0 || col >= MAP_W || row <0||row>=MAP_H) return false;
+    return mapGrid[row][col]==2;
+}
 
 
 static inline bool rectHitsWall(float x, float y, float w, float h){
