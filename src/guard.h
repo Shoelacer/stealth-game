@@ -3,10 +3,11 @@
 #include <stdio.h>
 #include <math.h>
 #include "tilemap.h"
+#include "hitbox.h"
 
 typedef struct
 {
-    float x, y;   // Top left of hitbox
+    Hitbox box;
     float bulletSpeed;
     int health, damage;
 } Guard;

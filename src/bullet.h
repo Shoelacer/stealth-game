@@ -3,11 +3,13 @@
 #include <stdio.h>
 #include <math.h>
 #include "tilemap.h"
+#include "hitbox.h"
 
-#define BULLET_SPEED 10
+#define BULLET_SPEED 6
 #define BULLET_SIZE 4.0f
 
 typedef struct{
+    Hitbox box;
     float x, y;
     float vx, vy;
     float w,h;
@@ -29,22 +31,47 @@ static inline void bulletInit(Bullet *b, float x, float y, float vx, float vy, S
     b->is_bouncy=is_bouncy;
     b->w=BULLET_SIZE;
     b->h=BULLET_SIZE;
+    b->box.x=x;
+    b->box.y=y;
+    b->box.w=BULLET_SIZE;
+    b->box.h=BULLET_SIZE;
+    
 }
 
 static inline void bulletUpdate(Bullet *b, float dt){
-    if(isWall((b->x+b->vx)/TILE,(b->y)/TILE)){
+    Hitbox original = b->box;
+    b->box.x+=b->vx;
+    if(hittingWall(&(b->box))){
         if(b->is_bouncy)
             b->vx*=-1;
         else
             b->active=false;
     }
-    if(isWall((b->x)/TILE,(b->y+b->vy)/TILE)){
+    b->box.x=original.x;
+    b->box.y+=b->vy;
+    if(hittingWall(&(b->box))){
         if(b->is_bouncy)
             b->vy*=-1;
         else
             b->active=false;
     }
-    b->x+=b->vx;
-    b->y+=b->vy;
+    b->box.y=original.y;
+    b->box.x+=b->vx;
+    b->box.y+=b->vy;
+    if(hittingWall(&(b->box)))b->active=false;
 }
 
+
+bool hittingBullet(Hitbox *h, Bullet bullets[]){
+    for(int i=0; i<10000; i++){
+        
+        Bullet *b = &bullets[i];
+        if(b->active==false)continue;
+        SDL_Rect rb = {b->box.x, b->box.y, b->box.w, b->box.h};
+        SDL_Rect rp = {h->x, h->y, TILE, TILE};
+        if(SDL_HasRectIntersection(&rb, &rp)){
+            return true;
+        }
+    }
+    return false;
+}

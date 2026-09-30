@@ -69,6 +69,7 @@ int main(int argc, char *argv[]){
                 dy/=SDL_fabs(dy/(TILE/2));
             }
 
+
             bulletInit(
                 &(bullets[current_bullet]),
                 player.x+TILE_SIZE/2-BULLET_SIZE/2+dx*(1.00001+BULLET_SIZE/TILE),
@@ -79,8 +80,11 @@ int main(int argc, char *argv[]){
                 false
             );
 
+
+
             current_bullet++;
             lastBulletTime = now;
+        
         }
 
         playerUpdate(&player, bullets, dt);
@@ -103,7 +107,7 @@ int main(int argc, char *argv[]){
                 continue;
             }
             bulletUpdate(b, dt);
-            SDL_FRect bulletRect = {b->x, b->y, b->w, b->h};
+            SDL_FRect bulletRect = {b->box.x, b->box.y, b->box.w, b->box.h};
             SDL_SetRenderDrawColor(renderer, b->color.r, b->color.g, b->color.b, b->color.a);
             SDL_RenderFillRect(renderer, &bulletRect);
         }

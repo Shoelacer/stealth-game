@@ -4,13 +4,15 @@
 #include <math.h>
 #include "tilemap.h"
 #include "bullet.h"
+#include "hitbox.h"
 
 #define TILE_SIZE 32.0f
-#define PLAYER_SPEED 400.0f
+#define PLAYER_SPEED 200.0f
 #define FOV_ANGLE 3.14159*2 * (45)/360
 
 typedef struct
 {
+    Hitbox box;
     float x, y;   // Top left of hitbox
     float vx, vy; // pixels/sec
     float health;
@@ -68,7 +70,7 @@ static inline void drawLine(float x1, float y1, float x2, float y2){
         }
     }
 }
-
+/*
 bool hittingBullet(Player *p, Bullet bullets[]){
     for(int i=0; i<10000; i++){
         
@@ -87,7 +89,7 @@ bool hittingBullet(Player *p, Bullet bullets[]){
             p->color.g=255;
 
     return false;
-}
+}*/
 
 
 static inline void playerUpdate(Player *p, Bullet bullets[], float dt)
@@ -141,9 +143,18 @@ static inline void playerUpdate(Player *p, Bullet bullets[], float dt)
         p->y = newY;
     }   
 
+    p->box.x=p->x;
+    p->box.y=p->y;
+
     memcpy(mapGrid, originalMap, sizeof(mapGrid));
 
-    hittingBullet(p,bullets);
+    if(hittingBullet(&(p->box),bullets)){
+        p->color.b=100;
+        p->color.g=100;
+    }else{
+        p->color.b=255;
+        p->color.g=255;
+    }
 
     //mapGrid[(int)((mouseY)/TILE)][(int)((mouseX)/TILE)] = 2;
 
