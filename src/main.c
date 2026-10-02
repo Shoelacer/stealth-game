@@ -81,7 +81,7 @@ int main(int argc, char *argv[]){
                 dx,
                 dy, 
                 (SDL_Color){255,0,0,255}, 
-                false
+                3
             );
 
 
@@ -109,12 +109,19 @@ int main(int argc, char *argv[]){
         for(int i=0; i<current_bullet; i++){
             Bullet *b = &bullets[i];
             if(!b->active){
+                Bullet temp = *b;
+                *b = bullets[current_bullet-1];
+                bullets[current_bullet-1].active=false;
+                current_bullet--;
                 continue;
             }
             bulletUpdate(b, dt);
-            SDL_FRect bulletRect = {b->box.x, b->box.y, b->box.w, b->box.h};
-            SDL_SetRenderDrawColor(renderer, b->color.r, b->color.g, b->color.b, b->color.a);
-            SDL_RenderFillRect(renderer, &bulletRect);
+
+            if(hittingLight(&(b->box))){
+                SDL_FRect bulletRect = {b->box.x, b->box.y, b->box.w, b->box.h};
+                SDL_SetRenderDrawColor(renderer, b->color.r, b->color.g, b->color.b, b->color.a);
+                SDL_RenderFillRect(renderer, &bulletRect);
+            }
         }
 
         for(int i=0; i<100; i++){

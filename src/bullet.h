@@ -16,11 +16,13 @@ typedef struct{
     float damage;
     bool active;
     bool is_bouncy;
+    int bounces;
+    int max_bounces;
     SDL_Color color;
 } Bullet;
 
 
-static inline void bulletInit(Bullet *b, float x, float y, float vx, float vy, SDL_Color color, bool is_bouncy)
+static inline void bulletInit(Bullet *b, float x, float y, float vx, float vy, SDL_Color color, int max_bounces)
 {
     b->x = x;
     b->y = y;
@@ -28,30 +30,34 @@ static inline void bulletInit(Bullet *b, float x, float y, float vx, float vy, S
     b->vy = BULLET_SPEED*(vy/sqrtf(vx*vx+vy*vy));
     b->active=true;
     b->color=color;
-    b->is_bouncy=is_bouncy;
+    b->max_bounces=max_bounces;
     b->w=BULLET_SIZE;
     b->h=BULLET_SIZE;
     b->box.x=x;
     b->box.y=y;
     b->box.w=BULLET_SIZE;
     b->box.h=BULLET_SIZE;
-    
+    b->bounces=0;
 }
 
 static inline void bulletUpdate(Bullet *b, float dt){
     Hitbox original = b->box;
     b->box.x+=b->vx;
     if(hittingWall(&(b->box))){
-        if(b->is_bouncy)
+        if(b->bounces<b->max_bounces){
+            b->bounces++;
             b->vx*=-1;
+        }
         else
             b->active=false;
     }
     b->box.x=original.x;
     b->box.y+=b->vy;
     if(hittingWall(&(b->box))){
-        if(b->is_bouncy)
+        if(b->bounces<b->max_bounces){
+            b->bounces++;
             b->vy*=-1;
+        }
         else
             b->active=false;
     }

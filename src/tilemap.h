@@ -24,6 +24,27 @@
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}, \
 }
 
+#define ORIGINAL_VISIBILITY { \
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, \
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, \
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, \
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, \
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, \
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, \
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, \
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, \
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, \
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, \
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, \
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, \
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, \
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, \
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, \
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, \
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, \
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, \
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, \
+}
 
 #define MAP_W 25
 #define MAP_H 19
@@ -42,6 +63,7 @@ typedef struct
 
 static const int originalMap[MAP_H][MAP_W] = ORIGINAL_MAP;
 int mapGrid[MAP_H][MAP_W] = ORIGINAL_MAP;
+int visibleGrid[MAP_H][MAP_W] = ORIGINAL_VISIBILITY;
 
 static inline bool isWall(int col, int row){
     if(col<0 || col >= MAP_W || row <0||row>=MAP_H) return true;
@@ -73,19 +95,27 @@ static inline void renderTilemap(SDL_Renderer *renderer) {
     for (int r = 0; r < MAP_H; r++) {
         for (int c = 0; c < MAP_W; c++) {
             SDL_FRect rect = { c * TILE, r * TILE, TILE, TILE };
+            
 
-            switch(mapGrid[r][c]){
-                case WALL:
-                    SDL_SetRenderDrawColor(renderer, 80, 80, 80, 255);
-                break;
-                case BLANK:
-                    SDL_SetRenderDrawColor(renderer, 40, 40, 40, 255);
-                break;
-                case VISIBLE:
-                    SDL_SetRenderDrawColor(renderer, 150, 150, 150, 255);
-                break;
+            int drawBrightness = 50;
+
+            if(visibleGrid[r][c]){
+                switch(mapGrid[r][c]){
+                    case WALL:
+                        drawBrightness = 50;
+                    break;
+                    case BLANK:
+                        drawBrightness = 100;
+                    break;
+                    case VISIBLE:
+                        drawBrightness = 180;
+                    break;
+                }
             }
+
+            SDL_SetRenderDrawColor(renderer, drawBrightness,drawBrightness,drawBrightness, 255);
             SDL_RenderFillRect(renderer, &rect);
+            
         }
     }
 }

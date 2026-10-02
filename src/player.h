@@ -59,6 +59,7 @@ static inline void drawLine(float x1, float y1, float x2, float y2){
             if(white.x<0||white.x>=MAP_W||white.y<0||white.y>=MAP_H)break;
             if(mapGrid[white.y][white.x]==WALL) break;
             mapGrid[white.y][white.x]=2;
+            visibleGrid[white.y][white.x]=1;
             if(distToY>distToX){
                 
                     white.x+=xDist/SDL_fabs(xDist);
@@ -70,27 +71,6 @@ static inline void drawLine(float x1, float y1, float x2, float y2){
         }
     }
 }
-/*
-bool hittingBullet(Player *p, Bullet bullets[]){
-    for(int i=0; i<10000; i++){
-        
-        Bullet *b = &bullets[i];
-        SDL_Rect rb = {b->x, b->y, b->w, b->h};
-        SDL_Rect rp = {p->x, p->y, TILE, TILE};
-        if(SDL_HasRectIntersection(&rb, &rp)){
-            p->color.b=100;
-            p->color.g=100;
-            printf("bozo");
-            fflush(stdout);
-            return true;
-        }
-    }
-            p->color.b=255;
-            p->color.g=255;
-
-    return false;
-}*/
-
 
 static inline void playerUpdate(Player *p, Bullet bullets[], float dt)
 {
@@ -116,7 +96,7 @@ static inline void playerUpdate(Player *p, Bullet bullets[], float dt)
 
     // snap coords?
     float newX = p->x + p->vx * dt;
-    if (rectHitsWall(newX, p->y, TILE, TILE)&&p->vx!=0) {
+    if (rectHitsWall(newX, p->y, TILE-1, TILE-1)&&p->vx!=0) {
         if (p->vx < 0) {
             // Moving left
             int wallCol = (int)(newX / TILE);
@@ -131,7 +111,7 @@ static inline void playerUpdate(Player *p, Bullet bullets[], float dt)
     }
 
     float newY = p->y + p->vy * dt;
-    if (rectHitsWall(p->x, newY, TILE, TILE)&&p->vy!=0) {
+    if (rectHitsWall(p->x, newY, TILE-1, TILE-1)&&p->vy!=0) {
         if (p->vy < 0) {
             int wallRow = (int)(newY / TILE);
             p->y = (wallRow + 1) * TILE;
