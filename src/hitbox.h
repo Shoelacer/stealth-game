@@ -1,9 +1,16 @@
 #pragma once
 #include "bullet.h"
 
+typedef enum Type {
+    PLAYER,
+    GUARD,
+    BULLET
+} Type;
+
 typedef struct{
     float x,y;
     float w,h;
+    Type type;
 } Hitbox;
 
 

@@ -18,11 +18,12 @@ typedef struct{
     bool is_bouncy;
     int bounces;
     int max_bounces;
+    bool friendly;
     SDL_Color color;
 } Bullet;
 
 
-static inline void bulletInit(Bullet *b, float x, float y, float vx, float vy, SDL_Color color, int max_bounces)
+static inline void bulletInit(Bullet *b, float x, float y, float vx, float vy, SDL_Color color, int max_bounces, bool friendly)
 {
     b->x = x;
     b->y = y;
@@ -37,7 +38,10 @@ static inline void bulletInit(Bullet *b, float x, float y, float vx, float vy, S
     b->box.y=y;
     b->box.w=BULLET_SIZE;
     b->box.h=BULLET_SIZE;
+    b->box.type = BULLET;
     b->bounces=0;
+    b->friendly=friendly;
+    
 }
 
 static inline void bulletUpdate(Bullet *b, float dt){
@@ -70,12 +74,14 @@ static inline void bulletUpdate(Bullet *b, float dt){
 
 bool hittingBullet(Hitbox *h, Bullet bullets[]){
     for(int i=0; i<10000; i++){
-        
         Bullet *b = &bullets[i];
         if(b->active==false)continue;
+        if((h->type==GUARD)&&(b->friendly==false))continue;
+        if((h->type==PLAYER)&&(b->friendly==true))continue;
         SDL_Rect rb = {b->box.x, b->box.y, b->box.w, b->box.h};
         SDL_Rect rp = {h->x, h->y, TILE, TILE};
         if(SDL_HasRectIntersection(&rb, &rp)){
+            b->active=false;
             return true;
         }
     }

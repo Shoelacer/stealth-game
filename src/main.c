@@ -11,6 +11,9 @@
 
 #define FIRE_RATE 1000000000/2
 
+size_t current_bullet = 0;
+bool running = true;
+
 int main(int argc, char *argv[]){
     (void)argc; (void)argv; // to avoid compiler warnings about unused vars
 
@@ -36,12 +39,10 @@ int main(int argc, char *argv[]){
 
     Bullet bullets[10000];
     Guard guards[100];
-    size_t current_bullet = 0;
 
     //INITIALIZE TEST GUARD
     guardInit(&guards[0],400,350,10,10);
 
-    bool running = true;
 
     Uint64 lastTime=SDL_GetTicksNS();
     Uint64 lastBulletTime = SDL_GetTicksNS();
@@ -80,8 +81,9 @@ int main(int argc, char *argv[]){
                 player.y+TILE_SIZE/2-BULLET_SIZE/2+dy*(1.00001+BULLET_SIZE/TILE),
                 dx,
                 dy, 
-                (SDL_Color){255,0,0,255}, 
-                3
+                (SDL_Color){0,0,255,255}, 
+                3,
+                true
             );
 
 
@@ -129,10 +131,10 @@ int main(int argc, char *argv[]){
             if(!g->active){
                 continue;
             }
-            guardUpdate(g, dt);
+            guardUpdate(g, bullets, &player, dt);
             if(hittingLight(&(g->box))){
                 SDL_FRect guardRect = {g->box.x, g->box.y, g->box.w, g->box.h};
-                SDL_SetRenderDrawColor(renderer, 255, 255, 0, 0);
+                SDL_SetRenderDrawColor(renderer, g->color.r, g->color.g, g->color.b, 255);
                 SDL_RenderFillRect(renderer, &guardRect);
             }
         }

@@ -8,7 +8,9 @@
 
 #define TILE_SIZE 32.0f
 #define PLAYER_SPEED 200.0f
-#define FOV_ANGLE 3.14159*2 * (45)/360
+#define FOV_ANGLE 3.14159*2 * (120)/360
+
+extern bool running;
 
 typedef struct
 {
@@ -26,7 +28,9 @@ static inline void playerInit(Player *p, float x, float y)
     p->y = y;
     p->vx = 0;
     p->vy = 0;
+    p->box.type = PLAYER;
     p->color = (SDL_Color){255,255,255,255};
+    p->health=10;
 }
 
 // RAYTRACING ALGORITHM
@@ -131,6 +135,7 @@ static inline void playerUpdate(Player *p, Bullet bullets[], float dt)
     if(hittingBullet(&(p->box),bullets)){
         p->color.b=100;
         p->color.g=100;
+        p->health--;
     }else{
         p->color.b=255;
         p->color.g=255;
@@ -138,7 +143,13 @@ static inline void playerUpdate(Player *p, Bullet bullets[], float dt)
 
     //mapGrid[(int)((mouseY)/TILE)][(int)((mouseX)/TILE)] = 2;
 
+    if(p->health<=0){
+        running=false;
+    }
+
     drawLine(p->x/TILE+0.5f, p->y/TILE+0.5f, mouseX/TILE, mouseY/TILE);
+
+
 
 }
 
