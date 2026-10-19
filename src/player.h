@@ -7,8 +7,9 @@
 #include "hitbox.h"
 
 #define TILE_SIZE 32.0f
-#define PLAYER_SPEED 200.0f
-#define FOV_ANGLE 3.14159*2 * (120)/360
+#define DEFAULT_PLAYER_SPEED 200.0f
+#define DEFAULT_FOV_DEGREES 3.14159*2 * (120)/360
+#define DEFAULT_SIGHT_RANGE 7
 
 extern bool running;
 
@@ -18,6 +19,8 @@ typedef struct
     float x, y;   // Top left of hitbox
     float vx, vy; // pixels/sec
     float health;
+    int sight_range;
+    float speed;
     SDL_Color color;
 
 } Player;
@@ -31,12 +34,14 @@ static inline void playerInit(Player *p, float x, float y)
     p->box.type = PLAYER;
     p->color = (SDL_Color){255,255,255,255};
     p->health=10;
+    p->sight_range = DEFAULT_SIGHT_RANGE;
+    p->speed = DEFAULT_PLAYER_SPEED;
 }
 
 // RAYTRACING ALGORITHM
 // credits: https://aaaa.sh/creatures/dda-algorithm-interactive/ 
 // learned the algorithm from the site above
-static inline void drawLine(float x1, float y1, float x2, float y2){
+static inline void drawLine(float x1, float y1, float x2, float y2, int range){
     if(x2==x1)return;
 
 
@@ -45,7 +50,7 @@ static inline void drawLine(float x1, float y1, float x2, float y2){
     float slope = (dy)/(dx);
     float angle = atan2f(-dy,dx);
 
-    for(float theta = angle - FOV_ANGLE/2; theta<=angle+FOV_ANGLE/2; theta+=.1){
+    for(float theta = angle - DEFAULT_FOV_DEGREES/2; theta<=angle+DEFAULT_FOV_DEGREES/2; theta+=.1){
 
         TileCoord white = {(int)x1,(int)y1};
         float xDist = cosf(theta);
@@ -59,7 +64,7 @@ static inline void drawLine(float x1, float y1, float x2, float y2){
         float distToX = distBetweenColumns;
         
 
-        for(int i=0; i<10; i++){
+        for(int i=0; i<range; i++){
             if(white.x<0||white.x>=MAP_W||white.y<0||white.y>=MAP_H)break;
             if(mapGrid[white.y][white.x]==WALL) break;
             mapGrid[white.y][white.x]=2;
@@ -87,10 +92,10 @@ static inline void playerUpdate(Player *p, Bullet bullets[], float dt)
     p->vx=0;
     p->vy=0;
 
-    if (keys[SDL_SCANCODE_W] || keys[SDL_SCANCODE_UP])    p->vy = -PLAYER_SPEED;
-    if (keys[SDL_SCANCODE_S] || keys[SDL_SCANCODE_DOWN])  p->vy =  PLAYER_SPEED;
-    if (keys[SDL_SCANCODE_A] || keys[SDL_SCANCODE_LEFT])  p->vx = -PLAYER_SPEED;
-    if (keys[SDL_SCANCODE_D] || keys[SDL_SCANCODE_RIGHT]) p->vx =  PLAYER_SPEED;
+    if (keys[SDL_SCANCODE_W] || keys[SDL_SCANCODE_UP])    p->vy = -p->speed;
+    if (keys[SDL_SCANCODE_S] || keys[SDL_SCANCODE_DOWN])  p->vy =  p->speed;
+    if (keys[SDL_SCANCODE_A] || keys[SDL_SCANCODE_LEFT])  p->vx = -p->speed;
+    if (keys[SDL_SCANCODE_D] || keys[SDL_SCANCODE_RIGHT]) p->vx =  p->speed;
 
     //fix diag magnitude
     if(p->vx != 0 && p->vy !=0){
@@ -147,7 +152,7 @@ static inline void playerUpdate(Player *p, Bullet bullets[], float dt)
         running=false;
     }
 
-    drawLine(p->x/TILE+0.5f, p->y/TILE+0.5f, mouseX/TILE, mouseY/TILE);
+    drawLine(p->x/TILE+0.5f, p->y/TILE+0.5f, mouseX/TILE, mouseY/TILE, p->sight_range);
 
 
 

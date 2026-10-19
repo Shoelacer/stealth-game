@@ -9,7 +9,9 @@
 #include "guard.h"
 #include "bullet.h"
 
-#define FIRE_RATE 1000000000/2
+#define FIRE_RATE 1000/2
+#define SUPER_SIGHT_DURATION 2000
+#define SUPER_SPEED_DURATION 4000
 
 size_t current_bullet = 0;
 bool running = true;
@@ -44,14 +46,18 @@ int main(int argc, char *argv[]){
     guardInit(&guards[0],400,350,10,10);
 
 
-    Uint64 lastTime=SDL_GetTicksNS();
-    Uint64 lastBulletTime = SDL_GetTicksNS();
+    Uint64 lastTime=SDL_GetTicks();
+    Uint64 lastBulletTime = lastTime;
+    Uint64 powerupTime = -1e9;
+
+    bool powerupsActive[2] = {false, false};
+    int powerupSelected = 1;
 
     while(running){
 
         // Time delay
-        Uint64 now = SDL_GetTicksNS();
-        float dt = (float)(now-lastTime)/1e9f;
+        Uint64 now = SDL_GetTicks();
+        float dt = (float)(now-lastTime)/1e3f;
         lastTime=now;
 
         SDL_Event event;
@@ -62,6 +68,11 @@ int main(int argc, char *argv[]){
         float mouse_x=0; float mouse_y=0;
 
         SDL_MouseButtonFlags Buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+        const bool *keys = SDL_GetKeyboardState(NULL);
+
+        if(keys[SDL_SCANCODE_1]) powerupSelected = 1;
+        else if(keys[SDL_SCANCODE_2]) powerupSelected = 2;
+        else if(keys[SDL_SCANCODE_3]) powerupSelected = 3;
 
         if (Buttons & SDL_BUTTON_MASK(SDL_BUTTON_LEFT)&& now-lastBulletTime>=FIRE_RATE) {
 
@@ -73,8 +84,6 @@ int main(int argc, char *argv[]){
                 dx/=SDL_fabs(dy/(TILE/2));
                 dy/=SDL_fabs(dy/(TILE/2));
             }
-
-
             bulletInit(
                 &(bullets[current_bullet]),
                 player.x+TILE_SIZE/2-BULLET_SIZE/2+dx*(1.00001+BULLET_SIZE/TILE),
@@ -85,13 +94,34 @@ int main(int argc, char *argv[]){
                 3,
                 true
             );
-
-
-
             current_bullet++;
             lastBulletTime = now;
         
         }
+
+        if (powerupSelected == 1 &&Buttons & SDL_BUTTON_MASK(SDL_BUTTON_RIGHT)&& now-powerupTime>=SUPER_SIGHT_DURATION*2){
+            player.sight_range *=2;
+            powerupsActive[0] = true;
+            powerupTime=now;
+        }
+
+        if ((now - powerupTime >= SUPER_SIGHT_DURATION) && powerupsActive[0]) {
+            player.sight_range /= 2;  
+            powerupsActive[0]=false;
+        }
+
+
+        if (powerupSelected == 2 && Buttons & SDL_BUTTON_MASK(SDL_BUTTON_RIGHT)&& now-powerupTime>=SUPER_SPEED_DURATION*2){
+            player.speed *=2;
+            powerupsActive[1] = true;
+            powerupTime=now;
+        }
+
+        if ((now - powerupTime >= SUPER_SPEED_DURATION) && powerupsActive[1]) {
+            player.speed /= 2;  
+            powerupsActive[1]=false;
+        }
+
 
         playerUpdate(&player, bullets, dt);
 
@@ -115,7 +145,6 @@ int main(int argc, char *argv[]){
                 *b = bullets[current_bullet-1];
                 bullets[current_bullet-1].active=false;
                 current_bullet--;
-                continue;
             }
             bulletUpdate(b, dt);
 
