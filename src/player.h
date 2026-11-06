@@ -33,7 +33,7 @@ static inline void playerInit(Player *p, float x, float y)
     p->vy = 0;
     p->box.type = PLAYER;
     p->color = (SDL_Color){255,255,255,255};
-    p->health=10;
+    p->health=200000000000;
     p->sight_range = DEFAULT_SIGHT_RANGE;
     p->speed = DEFAULT_PLAYER_SPEED;
 }

@@ -16,6 +16,12 @@
 size_t current_bullet = 0;
 bool running = true;
 
+static void readMapFromText(int *grid, Guard guards[]);
+void initGame(SDL_Renderer *renderer);
+void startMenu(SDL_Renderer *renderer);
+void initMapMaker(SDL_Renderer *renderer);
+
+
 int main(int argc, char *argv[]){
     (void)argc; (void)argv; // to avoid compiler warnings about unused vars
 
@@ -35,17 +41,76 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
+    startMenu(renderer);
+
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    return 0;
+}
+
+void startMenu(SDL_Renderer *renderer){
+    while(true){
+
+
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_EVENT_QUIT) return;
+        }
+
+        const bool *keys = SDL_GetKeyboardState(NULL);
+        if(keys[SDL_SCANCODE_1]){
+            initGame(renderer);
+            break;
+        }else if(keys[SDL_SCANCODE_2]){
+            initMapMaker(renderer);
+        }
+        
+        SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);
+        SDL_RenderClear(renderer);
+
+        SDL_RenderPresent(renderer);
+        SDL_Delay(16);
+    }
+}
+
+void initMapMaker(SDL_Renderer *renderer){
+    while(true){
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_EVENT_QUIT) return;
+        }
+
+        const bool *keys = SDL_GetKeyboardState(NULL);
+        if(keys[SDL_SCANCODE_ESCAPE]){
+            startMenu(renderer);
+            break;
+        }else if(keys[SDL_SCANCODE_1]){
+            //break;
+        }else if(keys[SDL_SCANCODE_2]){
+        }
+        
+        SDL_SetRenderDrawColor(renderer, 60, 60, 60, 255);
+        SDL_RenderClear(renderer);
+
+        SDL_RenderPresent(renderer);
+        SDL_Delay(16);
+    }
+}
+
+void initGame(SDL_Renderer *renderer){
+
     //Game stuff
     Player player;
     playerInit(&player, 320.0f, 320.0f);
 
     Bullet bullets[10000];
     Guard guards[100];
+    int guardsAlive = 0;
 
-    //INITIALIZE TEST GUARD
-    guardInit(&guards[0],400,350,10,10);
-
-
+    readMapFromText((int*)originalMap, guards);
+    readMapFromText((int*)mapGrid, guards);
+    memcpy(visibleGrid, originalVisibleGrid, sizeof(visibleGrid));   
     Uint64 lastTime=SDL_GetTicks();
     Uint64 lastBulletTime = lastTime;
     Uint64 powerupTime = -1e9;
@@ -69,7 +134,11 @@ int main(int argc, char *argv[]){
 
         SDL_MouseButtonFlags Buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
         const bool *keys = SDL_GetKeyboardState(NULL);
-
+        
+        if(keys[SDL_SCANCODE_ESCAPE]){
+            startMenu(renderer);
+            break;
+        }
         if(keys[SDL_SCANCODE_1]) powerupSelected = 1;
         else if(keys[SDL_SCANCODE_2]) powerupSelected = 2;
         else if(keys[SDL_SCANCODE_3]) powerupSelected = 3;
@@ -154,12 +223,14 @@ int main(int argc, char *argv[]){
                 SDL_RenderFillRect(renderer, &bulletRect);
             }
         }
-
+        
+        guardsAlive=0;
         for(int i=0; i<100; i++){
             Guard *g = &guards[i];
             if(!g->active){
                 continue;
             }
+            guardsAlive++;
             guardUpdate(g, bullets, &player, dt);
             if(hittingLight(&(g->box))){
                 SDL_FRect guardRect = {g->box.x, g->box.y, g->box.w, g->box.h};
@@ -167,13 +238,55 @@ int main(int argc, char *argv[]){
                 SDL_RenderFillRect(renderer, &guardRect);
             }
         }
+        
+        if(guardsAlive==0){
+            printf("YOU WON!\n");
+            fflush(stdout);
+            running=false;
+        }
+
 
         SDL_RenderPresent(renderer);
         SDL_Delay(16);
 
     }
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-    return 0;
+}
+
+
+static void readMapFromText(int *grid, Guard guards[]){
+    FILE *fp = fopen("map.txt","r");
+    if (fp == NULL) {
+        printf("Error opening file\n");
+        fflush(stdout);
+        return;
+    }
+    printf("READING\n");
+    fflush(stdout);
+    char line[MAP_W+2];
+    int row = 0;
+    int guard = 0;
+    while (fgets(line, sizeof(line), fp) != NULL) {
+        if (line[0] == 'G') {
+            int x=0;
+            int y=0;
+            printf("%d, %d\n",x,y);
+            fflush(stdout);
+            if (sscanf(line, "G %d %d", &x, &y) == 2) {
+                printf("%d, %d\n",x,y);
+                guardInit(&guards[guard], x, y, 10, 10);
+                guard++;
+            }else{
+                printf("%d, %d bruh\n",x,y);
+                fflush(stdout);
+            }
+        }else{
+            for(int i=0; i<MAP_W; i++){
+                if(line[i]=='0') *(grid + (row*MAP_W+i)) = 0;
+                else *(grid+(row*MAP_W+i))=1;
+            }
+            row++;
+        }
+    }
+
+    fclose(fp);
 }

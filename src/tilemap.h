@@ -48,7 +48,7 @@
 
 #define MAP_W 25
 #define MAP_H 19
-#define TILE 32
+#define TILE 32.0f
 
 enum Square {
     BLANK,
@@ -61,9 +61,14 @@ typedef struct
     int x,y;
 } TileCoord;
 
-static const int originalMap[MAP_H][MAP_W] = ORIGINAL_MAP;
-int mapGrid[MAP_H][MAP_W] = ORIGINAL_MAP;
+
+int originalMap[MAP_H][MAP_W];
+int mapGrid[MAP_H][MAP_W];
 int visibleGrid[MAP_H][MAP_W] = ORIGINAL_VISIBILITY;
+int originalVisibleGrid[MAP_H][MAP_W] = ORIGINAL_VISIBILITY;
+
+
+
 
 static inline bool isWall(int col, int row){
     if(col<0 || col >= MAP_W || row <0||row>=MAP_H) return true;
